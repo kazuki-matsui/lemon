@@ -1,0 +1,20 @@
+{
+  "name": "lemon",
+  "version": "1.0alpha",
+  "description": "Logical Expression-based Mutable Object Notation",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kazuki-matsui/lemon.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/kazuki-matsui/lemon/issues"
+  },
+  "homepage": "https://github.com/kazuki-matsui/lemon#readme"
+}

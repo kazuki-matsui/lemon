@@ -1,0 +1,81 @@
+import['lemon.citron', 'randomFunction.citron']
+/*comments can be outside objects*/
+coolStuff = {
+    import = 'inside objects import is just a key, but outside it imports all the variables from citrus file'
+    definition = 'there can be multiple topline objects'
+}
+intro = {
+    testString = 'hi /*comment*/ //comment'
+    number1 = 2
+    number2 = 3
+    number3 = number1 + number2
+    /*multiple mathematical operators*/
+    number5 = ∞
+    number6 = 5/3
+    // numbers can accepts special symbols and decimal numbers*
+    hexcode = 0xD36C
+    string1 = 'Hello'
+    string1half = 'a' + 'b'
+    string2 = 'World'
+    string2half = "you can use multiple parenthesis"
+    string3 = string1 + ' ' + string1
+    /*comment, string 3 outputs 'Hello World'*/
+    string1 -> 'Whatsapp'
+    /*reassigns the value*/
+    object = {
+        stringReference = string1
+        /*outputs the value of 'Hello'*/
+        §string4 = 'constant variable starts with § and cannot be reassigned afterwards'
+        objectsCanNestInEachOther = {
+            §string4 -> 'cool right? also this is wont actually overwrite string 4, just throw console note'
+        }
+    }
+    object.stringReference -> string2
+    /*stringReference is not a variable, you have to include the rest of the object, also you mention the place where it was first assigned,
+    you don't have to do this with modules, that's the big difference*/
+    noSpacesAllowedInVariables = null
+    array = ['hello', 'hi', 'whatsapp', 'you are you doing?']
+    /*accepts boolean, if value is null check skips it*/
+    check(string1 = 'Hello') = {
+        boolean = true
+    }
+    check(string1 != 'Hello') = {
+        boolean = false
+    }
+    /*if there is no if else check, you have to add ! to another check*/
+
+    /*accepts numbers*/
+    number4 = 4
+    repeat(number3) = {
+        number4 -> number4 + 1
+        check(number4 >= 100){
+            break
+            /*yee, break just escapes current logic block*/
+        }
+    }
+    intValue = 0
+    while(number3 * randomDecimal[3, [1, 3]] < 10) = {
+            intValue -> intValue * random[1, 10]
+    }
+    /*every time it finishes it checks whether true and if true it goes again*/
+    intValue -> 0
+    every(value1)in(array) = {
+        value1 -> intValue
+        newArray[intValue] = value1
+        intValue -> intValue + 1
+    }
+    function smartFunctionName[smartValue](smartArray) = {
+        intValue = 0
+        smartArray -> []
+        repeat(random[null, smartValue]) = {
+            smartArray[intValue] = intValue + 1
+            intValue -> intValue + 1
+        }
+    }
+    /*this is a function, the parenthesis is the name of the function and array are variables for the function and the last parenthesis are for return,
+    this is a simple function that outputs random amount of numbers in an array*/
+    every(key1)of(objectsCanNestInEachOther) = {
+        smartFunctionName[key1]
+    }
+    /*this every(key)in(value(array)) function will produce newArray of value = [0, 1, 2, 3]*/
+}
