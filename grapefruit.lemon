@@ -1,4 +1,4 @@
-import['lime.lemon', 'randomFunction.lemon']
+import = ['lime.lemon', 'randomFunction.lemon']
 /*comments can be outside objects*/
 coolStuff = {
     import = 'inside objects import is just a key, but outside it imports all the variables from citrus file'
@@ -9,7 +9,7 @@ intro = {
     number1 = 2
     number2 = 3
     number3 = number1 + number2
-    /*multiple mathematical operators*/
+    //multiple mathematical operators
     number5 = -(-5)
     number6 = 5/3
     hexadecimal = 0xD36C
@@ -20,7 +20,7 @@ intro = {
     string3 = string1 + ' ' + string1
     /*comment, string 3 outputs 'Hello World'*/
     string1 -> 'Whatsapp'
-    /*reassigns the value*/
+    //reassigns the value
     object = {
         stringReference = string1
         /*outputs the value of 'Hello'*/

@@ -3,14 +3,15 @@ const file = fs.readFileSync("grapefruit.lemon", "utf8")
 export enum TokenType {
     OpenParenthesis, ClosedParenthesis,
     Assigment, Mutation,
-    OpenComment, ClosedComment, SingleComment,
     ConditionalOperator,
     AlgebraicOperator,
     Constant,
     OpenSquareBracket, ClosedSquareBracket,
-    OpenCurlyBracket, ClosedCurlyBracket, Comma, Period,
+    OpenCurlyBracket, ClosedCurlyBracket,
+    Comma, Period,
     String,
-    Hexadecimal, Number, AlphabeticalCharacter
+    Hexadecimal, Number, AlphabeticalCharacter,
+    Import
 }
 export interface Token {
     value: string,
@@ -44,16 +45,29 @@ export function tokenize(data: string): Token[] {
             tokens.push(token(source.shift(), TokenType.OpenParenthesis))
         } else if(source[0] == ")") {
             tokens.push(token(source.shift(), TokenType.ClosedParenthesis))
-        } else if(source[0] == "=" && latestTokenType(tokens, TokenType.OpenParenthesis) < latestTokenType(tokens, TokenType.ClosedParenthesis)) {
+        } else if(source[0] == "=" && (latestTokenType(tokens, TokenType.OpenParenthesis) < latestTokenType(tokens, TokenType.ClosedParenthesis) || latestTokenType(tokens, TokenType.OpenParenthesis) == undefined)) {
             tokens.push(token(source.shift(), TokenType.Assigment))
         } else if(source[0] == "-" && source[1] == ">") {
             tokens.push(token(source.shift() + source.shift(), TokenType.Mutation))
         } else if(source[0] == "/" && source[1] == "*") {
-            tokens.push(token(source.shift() + source.shift(), TokenType.OpenComment))
-        } else if(source[0] == "*" && source[1] == "/") {
-            tokens.push(token(source.shift() + source.shift(), TokenType.ClosedComment))
+            let comment = source.shift() + source.shift()
+            while(source.length > 0) {
+                // @ts-ignore
+                if(source[0] == "*" && source[1] == "/") {
+                    comment += source.shift() + source.shift()
+                    break
+                }
+                comment += source.shift()
+            }
         } else if(source[0] == "/" && source[1] == "/") {
-            tokens.push(token(source.shift() + source.shift(), TokenType.SingleComment))
+            let comment = source.shift() + source.shift()
+            while(source.length > 0) {
+                // @ts-ignore
+                if(source[0] == "\n") {
+                    break
+                }
+                comment += source.shift()
+            }
         } else if((source[0] == "!" && source[1] == "=") || source[0] == "=" || source[0] == "<" || source[0] == ">" || source[0] == "&" || source[0] == "|") {
             if(source[0] == "!" && source[1] == "=") {
                 tokens.push(token(source.shift() + source.shift(), TokenType.ConditionalOperator))
@@ -105,7 +119,11 @@ export function tokenize(data: string): Token[] {
                 while(source.length > 0 && isAlphabetical(source[0])) {
                     alphabeticalCharacter += source.shift()
                 }
-                tokens.push(token(alphabeticalCharacter, TokenType.AlphabeticalCharacter))
+                if(alphabeticalCharacter == "import" && tokens.length == 0) {
+                    tokens.push(token(alphabeticalCharacter, TokenType.Import))
+                } else {
+                    tokens.push(token(alphabeticalCharacter, TokenType.AlphabeticalCharacter))
+                }
             } else if(source[0] == " " || source[0] == "\n" || source[0] == "\t") {
                 source.shift()
             } else {
