@@ -1,0 +1,10 @@
+ module = {
+    function αlpha[value](number) = {
+        check(value > 0) = {
+            number -> value + 1
+        }
+        check(value < 0) = {
+                    number -> value - 1
+        }
+    }
+ }

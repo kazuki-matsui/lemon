@@ -12,7 +12,7 @@ intro = {
     //multiple mathematical operators
     number5 = -5.1
     number6 = 5/3
-    hexadecimal = 0xA1F9
+    hexValue = 0xA1F9BB
     string1 = 'Hello'
     string1half = 'a' + 'b'
     string2 = 'World'

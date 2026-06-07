@@ -1,3 +1,5 @@
+import fs from 'fs';
+const file = fs.readFileSync("orange.lemon", "utf8")
 export enum TokenType {
     OpenParenthesis, ClosedParenthesis,
     Assigment, Mutation,
@@ -6,7 +8,7 @@ export enum TokenType {
     OpenSquareBracket, ClosedSquareBracket,
     OpenCurlyBracket, ClosedCurlyBracket,
     Comma,
-    String, Hexadecimal, Number, Boolean, Null,
+    String, Hex, Number, Boolean, Null,
     Break, Logic, Function,
     Identifier, Reference,
     Import,
@@ -19,9 +21,6 @@ export interface Token {
 
 function token(value: string, type: TokenType): Token {
     return {value, type}
-}
-function isHexadecimal(source: string): boolean {
-    return /^[0-9a-fA-F]+$/.test(source);
 }
 function isNumber(source: string) {
     const number = source.charCodeAt(0)
@@ -112,17 +111,20 @@ export function tokenize(data: string): Token[] {
 
 
             else if(source[0] == "0" && source[1] == "x") {
-                let hexadecimal = source.shift() + source.shift()
-                while(source.length > 0 && isHexadecimal(source[0])) {
-                    hexadecimal += source.shift()
+                let hex = source.shift() + source.shift()
+                while(source.length > 0 && /^[0-9a-fA-F]+$/.test(source[0])) {
+                    hex += source.shift()
                 }
-                tokens.push(token(hexadecimal, TokenType.Hexadecimal))
+                tokens.push(token(hex, TokenType.Hex))
             }
 
 
             else if(isNumber(source[0])) {
                 let number = ""
                 while(source.length > 0 && (isNumber(source[0]) || source[0] == ".")) {
+                    if(number.includes(".") && source[0] == ".") {
+                        break
+                    }
                     number += source.shift()
                 }
                 tokens.push(token(number, TokenType.Number))
@@ -167,4 +169,7 @@ export function tokenize(data: string): Token[] {
     }
     tokens.push(token("EndOfFile", TokenType.EndOfFile))
     return tokens
+}
+for(const token of tokenize(file)) {
+    console.log(token)
 }
