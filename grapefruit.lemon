@@ -10,14 +10,14 @@ intro = {
     number2 = 3
     number3 = number1 + number2
     //multiple mathematical operators
-    number5 = -(-5)
+    number5 = -5.1
     number6 = 5/3
-    hexadecimal = 0xD36C
+    hexadecimal = 0xA1F9
     string1 = 'Hello'
     string1half = 'a' + 'b'
     string2 = 'World'
     string2half = "you can use multiple parenthesis"
-    string3 = string1 + ' ' + string1
+    string3 = string1 + ' ' + string2
     /*comment, string 3 outputs 'Hello World'*/
     string1 -> 'Whatsapp'
     //reassigns the value
@@ -33,7 +33,7 @@ intro = {
     object.stringReference -> string2
     /*stringReference is not a variable, you have to include the rest of the object, also you mention the place where it was first assigned,
     you don't have to do this with modules, that's the big difference*/
-    noSpacesAllowedInVariables = null
+    spacesArentAllowedInVariables = null
     array = ['hello', 'hi', 'whatsapp', 'you are you doing?']
     /*accepts boolean, if value is null check skips it*/
     check(string1 = 'Hello') = {
@@ -74,7 +74,7 @@ intro = {
     }
     /*this is a function, the parenthesis is the name of the function and array are variables for the function and the last parenthesis are for return,
     this is a simple function that outputs random amount of numbers in an array*/
-    every(key1)of(objectsCanNestInEachOther) = {
+    every(key1)in(objectsCanNestInEachOther) = {
         smartFunctionName[key1]
     }
     /*this every(key)in(value(array)) function will produce newArray of value = [0, 1, 2, 3]*/
