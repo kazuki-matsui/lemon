@@ -1,8 +1,8 @@
-import['lemon.citron', 'randomFunction.citron']
+import['lime.lemon', 'randomFunction.lemon']
 /*comments can be outside objects*/
 coolStuff = {
     import = 'inside objects import is just a key, but outside it imports all the variables from citrus file'
-    definition = 'there can be multiple topline objects'
+    definition = 'there can be multiple topline objects, these are called modules. However topline variables can only be objects, nothing else'
 }
 intro = {
     testString = 'hi /*comment*/ //comment'
@@ -10,10 +10,9 @@ intro = {
     number2 = 3
     number3 = number1 + number2
     /*multiple mathematical operators*/
-    number5 = ∞
+    number5 = -(-5)
     number6 = 5/3
-    // numbers can accepts special symbols and decimal numbers*
-    hexcode = 0xD36C
+    hexadecimal = 0xD36C
     string1 = 'Hello'
     string1half = 'a' + 'b'
     string2 = 'World'
@@ -25,9 +24,10 @@ intro = {
     object = {
         stringReference = string1
         /*outputs the value of 'Hello'*/
-        §string4 = 'constant variable starts with § and cannot be reassigned afterwards'
+        !string4 = 'constant variable starts with ! and cannot be reassigned afterwards'
         objectsCanNestInEachOther = {
-            §string4 -> 'cool right? also this is wont actually overwrite string 4, just throw console note'
+            !string4 -> 'cool right? also this is wont actually overwrite string 4, just skip it'
+            string4 = 'this is also not allowed and code will just skip it'
         }
     }
     object.stringReference -> string2
@@ -48,7 +48,7 @@ intro = {
     number4 = 4
     repeat(number3) = {
         number4 -> number4 + 1
-        check(number4 >= 100){
+        check(number4 > 100 | number4 = 100) = {
             break
             /*yee, break just escapes current logic block*/
         }
