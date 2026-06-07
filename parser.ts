@@ -6,6 +6,9 @@ const file = fs.readFileSync("grapefruit.lemon", "utf8")
 
 export default class Parser {
     private tokens: Token[] = []
+    private at() {
+        return this.tokens[0] as Token
+    }
     private eat() {
         return this.tokens.shift() as Token
     }
