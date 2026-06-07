@@ -78,9 +78,8 @@ export function tokenize(data: string): Token[] {
             tokens.push(token(source.shift(), TokenType.Period))
         } else {
             if(source[0] == "'" || source[0] == '"') {
-                let markdown = source[0]
+                let markdown = source.shift()
                 let string = markdown
-                source.shift()
                 while(source.length > 0) {
                     if(source[0] == markdown) {
                         string += source.shift()

@@ -2,7 +2,7 @@
   "name": "lemon",
   "version": "1.0alpha",
   "description": "Logical Expression-based Mutable Object Notation",
-  "main": "new.ts",
+  "main": "lexer.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
