@@ -12,7 +12,6 @@ intro = {
     //multiple mathematical operators
     number5 = -5.1
     number6 = 5/3
-    hexValue = 0xA1F9BB
     string1 = 'Hello'
     string1half = 'a' + 'b'
     string2 = 'World'
@@ -32,7 +31,7 @@ intro = {
     }
     object.stringReference -> string2
     /*stringReference is not a variable, you have to include the rest of the object, also you mention the place where it was first assigned,
-    you don't have to do this with modules, that's the big difference*/
+    you don't have to do this with modules, that's the big difference between them*/
     spacesArentAllowedInVariables = null
     array = ['hello', 'hi', 'whatsapp', 'you are you doing?']
     /*accepts boolean, if value is null check skips it*/
@@ -74,8 +73,5 @@ intro = {
     }
     /*this is a function, the parenthesis is the name of the function and array are variables for the function and the last parenthesis are for return,
     this is a simple function that outputs random amount of numbers in an array*/
-    every(key1)in(objectsCanNestInEachOther) = {
-        smartFunctionName[key1]
-    }
-    /*this every(key)in(value(array)) function will produce newArray of value = [0, 1, 2, 3]*/
+    smartFunctionName[number3]
 }

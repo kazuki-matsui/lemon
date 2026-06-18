@@ -1,40 +1,38 @@
 import fs from 'fs';
-import {Statement, Program, Expression, Identifier} from "./ast"
-import {Token, tokenize, TokenType} from "./lexer";
-
-const file = fs.readFileSync("grapefruit.lemon", "utf8")
+import {Expression, Identifier, NumericLiteral, Program, Statement} from "./ast"
+import {Token, tokenize, TokenType} from "./lexer"
+const data = fs.readFileSync("orange.lemon", "utf8")
 
 export default class Parser {
-    private tokens: Token[] = []
-    private at() {
-        return this.tokens[0] as Token
-    }
-    private eat() {
-        return this.tokens.shift() as Token
-    }
-    public produceAST (data: string): Program {
-        this.tokens = tokenize(data)
+    tokens: Token[] = []
+    at() {return this.tokens[0] as Token}
+    eat() {return this.tokens.shift() as Token}
+
+    produceAST(sourceCode: string): Program {
+        this.tokens = tokenize(sourceCode)
         const program: Program = {
             kind: "Program",
-            body: [],
+            body: []
         }
-
-        while(this.tokens[0].type != TokenType.EndOfFile) {
+        while (this.tokens[0].type != TokenType.EndOfFile) {
             program.body.push(this.parseStatement())
         }
         return program
     }
 
-    private parseStatement (): Statement {
-        return this.parseExpression()
-    }
-    private parseExpression (): Expression {
-        return this.parsePrimaryExpression()
-    }
-    private parsePrimaryExpression (): Expression {
-        switch (this.tokens[0].type) {
-            case TokenType.Identifier: return {kind: "Identifier", symbol: this.eat().value} as Identifier;
-            default: return {} as Statement
+    parseStatement(): Statement {return this.parseExpression()}
+    parseExpression(): Expression {return this.parsePrimary()}
+    parsePrimary(): Expression {
+        const token = this.at().type
+        switch (token) {
+            case  TokenType.Identifier:
+                return {kind: "Identifier", symbol: this.eat().value} as Identifier
+            case TokenType.Number:
+                return {kind: "NumericLiteral", value: parseFloat(this.eat().value)} as NumericLiteral
+            default:
+                // console.error("Unexpected token found during parsing", this.at)
+                return {} as Statement
         }
     }
 }
+

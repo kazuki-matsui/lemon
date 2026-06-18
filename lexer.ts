@@ -1,14 +1,12 @@
-import fs from 'fs';
-const file = fs.readFileSync("orange.lemon", "utf8")
 export enum TokenType {
     OpenParenthesis, ClosedParenthesis,
     Assigment, Mutation,
-    ConditionalOperator, AlgebraicOperator,
+    BinaryOperator, ConditionalOperator, LogicalOperator,
     Constant,
     OpenSquareBracket, ClosedSquareBracket,
     OpenCurlyBracket, ClosedCurlyBracket,
     Comma,
-    String, Hex, Number, Boolean, Null,
+    String, Number, Boolean, Null,
     Break, Logic, Function,
     Identifier, Reference,
     Import,
@@ -30,23 +28,24 @@ function isNumber(source: string) {
 function isAlphabetical(source: string) {
     return source.toUpperCase() != source.toLowerCase()
 }
-function latestTokenType(tokens: any, type: TokenType, value?: string) {
+function latestTokenType(tokens: Array<Token>, type: TokenType) {
     for(let i = tokens.length - 1; i >= 0; i--) {
-        if(value == undefined) {
-            if(tokens[i].type === type) {
-                return i
-            }
-        } else {
-            if(tokens[i].type === type && tokens[i].value == value) {
-                return i
-            }
+        if(tokens[i].type === type) {
+            return i
+        }
+    }
+}
+function isIdentified(tokens: Array<Token>, source: string): boolean {
+    for(let i = tokens.length - 1; i >= 0; i--) {
+        if(tokens[i].type === TokenType.Identifier && tokens[i].value == source) {
+            return true
         }
     }
 }
 
-export function tokenize(data: string): Token[] {
+export function tokenize(sourceCode: string): Token[] {
     const tokens = new Array<Token>()
-    const source = data.split("")
+    const source = sourceCode.split("")
     while(source.length > 0) {
         if(source[0] == "(") {
             tokens.push(token(source.shift(), TokenType.OpenParenthesis))
@@ -75,14 +74,14 @@ export function tokenize(data: string): Token[] {
                 }
                 comment += source.shift()
             }
-        } else if((source[0] == "!" && source[1] == "=") || source[0] == "=" || source[0] == "<" || source[0] == ">" || source[0] == "&" || source[0] == "|") {
-            if(source[0] == "!" && source[1] == "=") {
-                tokens.push(token(source.shift() + source.shift(), TokenType.ConditionalOperator))
-            } else {
-                tokens.push(token(source.shift(), TokenType.ConditionalOperator))
-            }
         } else if(source[0] == "+" || source[0] == "-" || source[0] == "%" || source[0] == "/" || source[0] == "*" || source[0] == "^" || source[0] == "√") {
-            tokens.push(token(source.shift(), TokenType.AlgebraicOperator))
+            tokens.push(token(source.shift(), TokenType.BinaryOperator))
+        } else if(source[0] == "!" && source[1] == "=") {
+            tokens.push(token(source.shift() + source.shift(), TokenType.ConditionalOperator))
+        } else if(source[0] == "=" || source[0] == "<" || source[0] == ">") {
+            tokens.push(token(source.shift(), TokenType.ConditionalOperator))
+        } else if(source[0] == "&" || source[0] == "|") {
+            tokens.push(token(source.shift(), TokenType.LogicalOperator))
         } else if(source[0] == "!") {
             tokens.push(token(source.shift(), TokenType.Constant))
         } else if(source[0] == "[") {
@@ -107,15 +106,6 @@ export function tokenize(data: string): Token[] {
                     string += source.shift()
                 }
                 tokens.push(token(string, TokenType.String))
-            }
-
-
-            else if(source[0] == "0" && source[1] == "x") {
-                let hex = source.shift() + source.shift()
-                while(source.length > 0 && /^[0-9a-fA-F]+$/.test(source[0])) {
-                    hex += source.shift()
-                }
-                tokens.push(token(hex, TokenType.Hex))
             }
 
 
@@ -145,14 +135,14 @@ export function tokenize(data: string): Token[] {
                     tokens.push(token(alphabeticalCharacter, TokenType.Null))
                 } else if(alphabeticalCharacter == "break") {
                     tokens.push(token(alphabeticalCharacter, TokenType.Break))
-                } else if((alphabeticalCharacter == "check" || alphabeticalCharacter == "repeat" || alphabeticalCharacter == "while" || alphabeticalCharacter == "every" || alphabeticalCharacter == "in") && (source[0] == "(" || source[1] == "(")) {
+                } else if((alphabeticalCharacter == "check" || alphabeticalCharacter == "repeat" || alphabeticalCharacter == "while")) {
                     tokens.push(token(alphabeticalCharacter, TokenType.Logic))
                 } else if(alphabeticalCharacter == "function") {
                     tokens.push(token(alphabeticalCharacter, TokenType.Function))
                 } else {
-                    if(latestTokenType(tokens, TokenType.Function) == tokens.length -1 || source[1] == "=" || latestTokenType(tokens, TokenType.Logic, "every") == tokens.length -2) {
+                    if(latestTokenType(tokens, TokenType.Function) == tokens.length -1 || source[1] == "=" || latestTokenType(tokens, TokenType.OpenSquareBracket) > latestTokenType(tokens, TokenType.ClosedSquareBracket) || (latestTokenType(tokens, TokenType.OpenSquareBracket) != undefined && latestTokenType(tokens, TokenType.ClosedSquareBracket) == undefined)) {
                         tokens.push(token(alphabeticalCharacter, TokenType.Identifier))
-                    } else {
+                    } else if(isIdentified(tokens, alphabeticalCharacter) || (tokens[tokens.length - 1].type === TokenType.OpenParenthesis && source[0] == ")")) {
                         tokens.push(token(alphabeticalCharacter, TokenType.Reference))
                     }
                 }
@@ -162,14 +152,11 @@ export function tokenize(data: string): Token[] {
             else if(source[0] == " " || source[0] == "\n" || source[0] == "\t") {
                 source.shift()
             } else {
-                console.log("Unrecognized Character: " + source[0])
+                console.log("No Token Available: " + source[0])
                 source.shift()
             }
         }
     }
     tokens.push(token("EndOfFile", TokenType.EndOfFile))
     return tokens
-}
-for(const token of tokenize(file)) {
-    console.log(token)
 }
