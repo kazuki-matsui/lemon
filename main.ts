@@ -1,11 +1,4 @@
-import Parser from "./parser";
+import parse from "./frontEnd/NewParser";
+import tokenize from "./frontEnd/lexer";
 import fs from "fs";
-const data = fs.readFileSync("orange.lemon", "utf8")
-
-repl()
-
-async function repl () {
-    const parser = new Parser()
-    const program = parser.produceAST(data)
-    console.log(data)
-}
+console.dir(parse(fs.readFileSync("orange.lemon", "utf8")), { depth: null })

@@ -8,18 +8,21 @@ export type NodeType =
     | "Break"
     | "Function"
 
+
+    | "LogicalExpression"
+    | "ConditionalExpression"
+    | "BinaryExpression"
     | "Identifier"
     | "Reference"
     | "FunctionReference"
+    | "IndexReference"
+    | "MemberReference"
+    | "ObjectLiteral"
+    | "ArrayLiteral"
     | "StringLiteral"
     | "NumericLiteral"
     | "BooleanLiteral"
     | "NullLiteral"
-    | "ArrayLiteral"
-    | "ObjectLiteral"
-    | "BinaryExpression"
-    | "ConditionalExpression"
-    | "LogicalExpression"
 
 export interface Statement {
     kind: NodeType
@@ -33,14 +36,14 @@ export interface Program extends Statement {
 
 
 
-export interface Import extends Statement {
+export interface ImportStatement extends Statement {
     kind: "Import"
     imports: Array<string>
 }
-export interface Module extends Statement {
+export interface ModuleStatement extends Statement {
     kind: "Module"
-    symbol: Identifier
-    body: Statement[] | FunctionReference[]
+    symbol: string
+    body: Statement[]
 }
 export interface Assignment extends Statement {
     kind: "Assignment"
@@ -50,21 +53,21 @@ export interface Assignment extends Statement {
 }
 export interface Mutation extends Statement {
     kind: "Mutation"
-    reference: Reference
+    identifier: Identifier
     value: Expression
 }
 export interface Logic extends Statement {
     kind: "Logic"
-    type: "Check" | "Repeat" | "While"
-    parameters: Expression[]
-    body: Statement[] | FunctionReference[]
+    type: "check" | "repeat" | "while"
+    parameters: Expression
+    body: Statement[]
 }
 export interface Function extends Statement {
     kind: "Function"
     symbol: string
-    parameters: Array<Expression>
+    parameters: Array<Identifier>
     return: Expression
-    body: Statement[] | FunctionReference[]
+    body: Statement[]
 }
 export interface Break extends Statement {
     kind: "Break"
@@ -72,6 +75,24 @@ export interface Break extends Statement {
 
 
 
+export interface LogicalExpression extends Expression {
+    kind: "LogicalExpression"
+    left: Expression
+    operation: "&" | "|"
+    right: Expression
+}
+export interface ConditionalExpression extends Expression {
+    kind: "ConditionalExpression"
+    left: Expression
+    operation: "=" | "<" | ">" | "!="
+    right: Expression
+}
+export interface BinaryExpression extends Expression {
+    kind: "BinaryExpression"
+    left: Expression
+    operation: "+" | "-" | "*" | "/" | "%" | "^" | "√"
+    right: Expression
+}
 export interface Identifier extends Expression {
     kind: "Identifier"
     symbol: string
@@ -82,8 +103,26 @@ export interface Reference extends Expression {
 }
 export interface FunctionReference extends Expression {
     kind: "FunctionReference"
-    referencing: Function
+    referencing: Identifier
     parameters: Array<Expression>
+}
+export interface IndexReference extends Expression {
+    kind: "IndexReference"
+    referencing: Identifier
+    index: Expression
+}
+export interface MemberReference extends Expression {
+    kind: "MemberReference"
+    referencing: Identifier
+    property: Identifier | FunctionReference | MemberReference
+}
+export interface ObjectLiteral extends Expression {
+    kind: "ObjectLiteral"
+    body: Statement[]
+}
+export interface ArrayLiteral extends Expression {
+    kind: "ArrayLiteral"
+    value: Array<Expression>
 }
 export interface StringLiteral extends Expression {
     kind: "StringLiteral"
@@ -99,31 +138,4 @@ export interface BooleanLiteral extends Expression {
 }
 export interface NullLiteral extends Expression {
     kind: "NullLiteral"
-    value: null
-}
-export interface ArrayLiteral extends Expression {
-    kind: "ArrayLiteral"
-    value: Array<any>
-}
-export interface ObjectLiteral extends Expression {
-    kind: "ObjectLiteral"
-    body: Statement[] | FunctionReference[]
-}
-export interface BinaryExpression extends Expression {
-    kind: "BinaryExpression"
-    left: Expression
-    right: Expression
-    operation: "+" | "-" | "%" | "/" | "*" | "^" | "√"
-}
-export interface ConditionalExpression extends Expression {
-    kind: "ConditionalExpression"
-    left: Expression
-    right: Expression
-    operation: "=" | "<" | ">" | "!="
-}
-export interface LogicalExpression extends Expression {
-    kind: "LogicalExpression"
-    left: Expression
-    right: Expression
-    operation: "&" | "|"
 }
