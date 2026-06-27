@@ -4,27 +4,38 @@ import {
     BinaryExpression,
     BooleanLiteral,
     Break,
-    ConditionalExpression,
     Expression,
     Function,
     FunctionReference,
     Identifier,
-    ImportStatement,
     Logic,
-    LogicalExpression,
-    ModuleStatement,
+    MemberReference,
     Mutation,
     NullLiteral,
     NumericLiteral,
+    ObjectLiteral,
     Program,
-    Reference,
     Statement,
     StringLiteral
 } from "./ast"
 import tokenize, {Token, TokenType} from "./lexer"
 
+const precedence = [
+    "&", "|",
+    "∈", "!=", "=", ">", "<",
+    "+", "-",
+    "*", "/", "%",
+    "^", "√"
+]
 let tokens: Token[] = []
 let program: Program = {} as Program
+function tokenTypeOf(tokens: Array<Token>, type: TokenType) {
+    for(let i = 0; i <= tokens.length; i++) {
+        if(tokens[i]?.type === type) {
+            return i
+        }
+    }
+}
 export default function parse(sourceCode: string): Program {
     tokens = tokenize(sourceCode)
     program = {kind: "Program", body: []}
@@ -39,273 +50,163 @@ export default function parse(sourceCode: string): Program {
 
 
 function parseStatement(): Statement {
-    if(tokens[0].type == TokenType.Import) {
-        return parseImport()
-    } else if(tokens[1].type == TokenType.Assignment) {
-        return parseModule()
-    }
-}
-function parseImport(): Statement {
-    let imports = []
-    while(true) {
-        if(tokens[0].type == TokenType.ClosedSquareBracket) {
+    if(tokens[1]?.type == TokenType.Assignment || tokens[2]?.type == TokenType.Assignment) {
+        let constant = false
+        if(tokens[0]?.type == TokenType.Constant) {
             tokens.shift()
-            break
+            constant = true
         }
-        if(tokens[0].type === TokenType.String) {
-            imports.push(tokens[0].value)
-        }
-    }
-    return {kind: "Import", imports} as ImportStatement
-}
-function parseModule(): Statement {
-    let module = {kind: "Module", symbol: tokens.shift().value, body: []} as ModuleStatement
-    tokens.shift()
-    tokens.shift()
-    let openCurlyBracket = 1
-    let closedCurlyBracket = 0
-    while(true) {
-        tokens[0].type == TokenType.OpenCurlyBracket ? openCurlyBracket ++ : openCurlyBracket
-        tokens[0].type == TokenType.ClosedCurlyBracket ? closedCurlyBracket ++ : closedCurlyBracket
-        if(openCurlyBracket == closedCurlyBracket) {
-            tokens.shift()
-            break
-        }
-        module.body.push(parsePrimaryStatement())
-    }
-    return module as ModuleStatement
-}
-function parsePrimaryStatement(): Statement {
-    if(tokens[1].type == TokenType.Constant || tokens[1].type == TokenType.Assignment) {
-        return parseAssignment(tokens[1].type == TokenType.Constant)
-    } else if(tokens[1].type == TokenType.Mutation) {
-        return parseMutation()
-    } else if(tokens[0].type == TokenType.Logic) {
-        return parseLogic()
-    } else if(tokens[0].type == TokenType.Function) {
-        return parseFunction()
-    }
-}
-function parseAssignment(constant: boolean): Statement {
-    if(constant == true) {
+        const identifier = parsePrimaryExpression()
         tokens.shift()
-    }
-    const identifier = parsePrimaryExpression()
-    tokens.shift()
-    return {kind: "Assignment", constant, identifier, value: parseLogicalExpression()} as Assignment
-}
-function parseMutation(): Statement {
-    const identifier = parsePrimaryExpression()
-    tokens.shift()
-    return {kind: "Mutation", identifier, value: parseLogicalExpression()} as Mutation
-}
-function parseLogic(): Statement {
-    const type = tokens.shift().value
-    tokens.shift()
-    const parameters = parseLogicalExpression()
-    tokens.shift()
-    tokens.shift()
-    tokens.shift()
-    let logic = {kind: "Logic", type, parameters, body: []} as Logic
-    let openCurlyBracket = 1
-    let closedCurlyBracket = 0
-    while(true) {
-        tokens[0].type == TokenType.OpenCurlyBracket ? openCurlyBracket ++ : openCurlyBracket
-        tokens[0].type == TokenType.ClosedCurlyBracket ? closedCurlyBracket ++ : closedCurlyBracket
-        if(openCurlyBracket == closedCurlyBracket) {
-            tokens.shift()
-            break
-        }
-        logic.body.push(parsePrimaryStatement())
-    }
-    return logic
-}
-function parseFunction(): Statement {
-    tokens.shift()
-    let functionS = {kind: "Function", symbol: tokens.shift().value, parameters: [], return: {}, body: []} as Function
-    while(true) {
-        if(tokens[0].type == TokenType.ClosedSquareBracket) {
-            tokens.shift()
-            break
-        } else if(tokens[0].type === TokenType.Identifier) {
-            functionS.parameters.push({kind: "Identifier", symbol: tokens[0].value})
-        }
+        return {kind: "Assignment", constant, identifier, value: parseExpression()} as Assignment
+    } else if(tokens[1]?.type == TokenType.Mutation) {
+        const referencing = parsePrimaryExpression()
         tokens.shift()
-    }
-    tokens.shift()
-    functionS.return = parseLogicalExpression()
-    tokens.shift()
-    tokens.shift()
-    tokens.shift()
-    let openCurlyBracket = 1
-    let closedCurlyBracket = 0
-    while(true) {
-        // @ts-ignore
-        tokens[0].type == TokenType.OpenCurlyBracket ? openCurlyBracket ++ : openCurlyBracket
-        // @ts-ignore
-        tokens[0].type == TokenType.ClosedCurlyBracket ? closedCurlyBracket ++ : closedCurlyBracket
-        if(openCurlyBracket == closedCurlyBracket) {
+        return {kind: "Mutation", referencing, value: parseExpression()} as Mutation
+    } else if(tokens[0]?.type == TokenType.Logic) {
+        let logic = {kind: "Logic", type: tokens.shift().value, parameters: parseExpression(), body: []} as Logic
+        tokens.shift()
+        logic.body = parseObject()
+        return logic
+    } else if(tokens[0]?.type == TokenType.Function) {
+        tokens.shift()
+        let functionStatement = {kind: "Function", symbol: tokens.shift().value, parameters: parseArray(), return: parseExpression(), body: {}} as Function
+        tokens.shift()
+        functionStatement.body = parseObject()
+        return functionStatement
+    } else if(tokens[0]?.type == TokenType.Constant && tokens[2]?.type == TokenType.OpenSquareBracket) {
+        tokens.shift()
+        const reference = {kind: "FunctionReference", constant: true, referencing: {kind: "Identifier", symbol: tokens.shift().value}, parameters: parseArray()} as FunctionReference
+        tokens.shift()
+        tokens.shift()
+        return reference
+    } else if(tokens[tokenTypeOf(tokens, TokenType.ClosedSquareBracket) + 1]?.type == TokenType.OpenParenthesis) {
+        const reference = {kind: "FunctionReference", constant: false, referencing: {kind: "Identifier", symbol: tokens.shift().value}, parameters: parseArray()} as FunctionReference
+        tokens.shift()
+        tokens.shift()
+        return reference
+    } else {
+        const left = parsePrimaryExpression()
+        if(tokens[0]?.type == TokenType.Constant) {
             tokens.shift()
-            break
-        }
-        functionS.body.push(parsePrimaryStatement())
-    }
-    return functionS
-}
-
-
-
-
-
-function parseLogicalExpression(): Expression {
-    let left = parseConditionalExpression()
-    while(tokens[0].value == "&") {
-        tokens.shift().value
-        const right = parseConditionalExpression()
-        left = {
-            kind: "LogicalExpression",
-            left,
-            operation: "&",
-            right
-        } as LogicalExpression
-    }
-    while(tokens[0].value == "|") {
-        tokens.shift().value
-        const right = parseConditionalExpression()
-        left = {
-            kind: "LogicalExpression",
-            left,
-            operation: "|",
-            right
-        } as LogicalExpression
-    }
-    return left
-}
-function parseLogicalOrExpression(): Expression {
-    let left = parseConditionalExpression()
-    while(tokens[0].value == "|") {
-        tokens.shift().value
-        const right = parseConditionalExpression()
-        left = {
-            kind: "LogicalExpression",
-            left,
-            operation: "|",
-            right
-        } as LogicalExpression
-    }
-    return left
-}
-function parseConditionalExpression(): Expression {
-    let left = parseAdditionalExpression()
-    while(tokens[0].type == TokenType.ConditionalOperator && (tokens[0].value == ">" || tokens[0].value == "<" || tokens[0].value == "=" || tokens[0].value == "!=")) {
-        const operation = tokens.shift().value
-        const right = parseAdditionalExpression()
-        left = {
-            kind: "ConditionalExpression",
-            left,
-            operation,
-            right
-        } as ConditionalExpression
-    }
-    return left
-}
-function parseAdditionalExpression(): Expression {
-    let left = parseMultiplicativeExpression()
-    while(tokens[0].type == TokenType.BinaryOperator && (tokens[0].value == "+" || tokens[0].value == "-")) {
-        const operation = tokens.shift().value
-        const right = parseMultiplicativeExpression()
-        left = {
-            kind: "BinaryExpression",
-            left,
-            operation,
-            right
-        } as BinaryExpression
-    }
-    return left
-}
-function parseMultiplicativeExpression(): Expression {
-    let left = parseExponentialExpression()
-    while(tokens[0].value == "*" || tokens[0].value == "/" || tokens[0].value == "%") {
-        const operation = tokens.shift().value
-        const right = parseExponentialExpression()
-        left = {
-            kind: "BinaryExpression",
-            left,
-            operation,
-            right
-        } as BinaryExpression
-    }
-    return left
-}
-
-function parseExponentialExpression(): Expression {
-    let left = parsePrimaryExpression()
-    while(tokens[0].value == "^" || tokens[0].value == "√") {
-        const operation = tokens.shift().value
-        const right = parsePrimaryExpression()
-        left = {
-            kind: "BinaryExpression",
-            left,
-            operation,
-            right
-        } as BinaryExpression
-    }
-    return left
-}
-/*function parseReference(): Expression {
-    if(tokens[0].type == TokenType.Reference) {
-        if(tokens[1].type == TokenType.OpenSquareBracket) {
-            if(true) {
-                return {kind: "Reference", referencing: {kind: "Identifier", symbol: tokens.shift().value}} as IndexReference
-            } else {
-                if(tokens[0].type == TokenType.Reference && tokens[1].type == TokenType.OpenSquareBracket) {
-                    let reference = {kind: "FunctionReference", referencing: {kind: "Identifier", symbol: tokens.shift().value}, parameters: []} as FunctionReference
-                    tokens.shift()
-                    let parameter = {} as Expression
-                    while(true) {
-                    // @ts-ignore
-                    if(tokens[0].type == TokenType.ClosedSquareBracket) {
-                        tokens.shift()
-                        break
-                    } else {
-                        parameter = parseExpression()
-                        if(parameter != undefined){
-                            reference.parameters.push(parameter)
-                        }
-                    }
-                }
-                tokens.shift()
-                tokens.shift()
-                return reference
-                }
-                return {kind: "Reference", referencing: {kind: "Identifier", symbol: tokens.shift().value}} as FunctionReference
-            }
-        } else if(tokens[1].value.includes(".")) {
-            return {kind: "Reference", referencing: {kind: "Identifier", symbol: tokens.shift().value}} as MemberReference
+            return {kind: "Assignment", constant: true, identifier: left, value: parseExpression()} as Assignment
+        } else if(tokens[0]?.type == TokenType.Assignment) {
+            tokens.shift()
+            return {kind: "Assignment", constant: true, identifier: left, value: parseExpression()} as Assignment
+        } else if(tokens[0]?.type == TokenType.Mutation) {
+            tokens.shift()
+            return {kind: "Mutation", referencing: left, value: parseExpression()} as Mutation
         } else {
-            return {kind: "Reference", referencing: {kind: "Identifier", symbol: tokens.shift().value}} as Reference
+            // console.log("Unexpected token found while parsing statement" + tokens[0]?.value + " " + tokens[1]?.value + " " + tokens[2]?.value)
+            tokens.shift()
+        }
+    }
+}
+function parseExpression(minPrecedence = 0): Expression {
+    let left = parsePrimaryExpression()
+    while (tokens[0]?.type == TokenType.BinaryOperator && precedence.indexOf(tokens[0].value) >= minPrecedence) {
+        const operation = tokens.shift().value
+        const currentPrecedence = precedence.indexOf(operation)
+        let right = parseExpression(currentPrecedence + 1)
+        left = {
+            kind: "BinaryExpression",
+            left: left,
+            operation,
+            right
+        } as BinaryExpression
+    }
+    return left
+}
+function parseObject(): Statement[] {
+    tokens.shift()
+    const body: Statement[] = []
+    while (tokens[0]?.type != TokenType.ClosedCurlyBracket) {
+        body.push(parseStatement())
+    }
+    tokens.shift()
+    return body
+}
+function parseArray(): Expression[] {
+    tokens.shift()
+    const elements: Expression[] = []
+    while(true) {
+        if(tokens[0]?.type == TokenType.ClosedSquareBracket) {
+            tokens.shift()
+            break
+        }
+        elements.push(parseExpression())
+        if (tokens[0]?.type == TokenType.Comma) {
+            tokens.shift()
+        } else {
+            tokens.shift()
+            break
+        }
+    }
+    return elements
+}
+function parsePrimaryExpression(): Expression {
+    if(tokens[0]?.type == TokenType.Constant && tokens[1]?.type == TokenType.Reference || tokens[0]?.type == TokenType.Reference) {
+        if(tokens[0].value.includes(".")) {
+            const references = tokens.shift().value.split(".")
+            const root: MemberReference = {
+                kind: "MemberReference",
+                referencing: { kind: "Reference", symbol: references[0] }
+            }
+            let current = root
+            for (const reference of references.slice(1)) {
+                current = current.property = {
+                    kind: "MemberReference",
+                    referencing: { kind: "Reference", symbol: reference }
+                }
+            }
+            return root
+        } else if(tokens[0]?.type == TokenType.Constant && tokens[2]?.type == TokenType.OpenSquareBracket) {
+            tokens.shift()
+            const reference = {kind: "FunctionReference", constant: true, referencing: {kind: "Identifier", symbol: tokens.shift().value}, parameters: parseArray()} as FunctionReference
+            tokens.shift()
+            tokens.shift()
+            return reference
+        } else if(tokens[tokenTypeOf(tokens, TokenType.ClosedSquareBracket) + 1]?.type == TokenType.OpenParenthesis) {
+            const reference = {kind: "FunctionReference", constant: false, referencing: {kind: "Identifier", symbol: tokens.shift().value}, parameters: parseArray()} as FunctionReference
+            tokens.shift()
+            tokens.shift()
+            return reference
+        } else {
+            // @ts-ignore
+            return {kind: "Reference", symbol: tokens.shift().value, index: tokens[0]?.type == TokenType.OpenSquareBracket ? parseArray()[0] : undefined} as Reference
         }
     } else {
-        parsePrimaryExpression()
-    }
-} */
-function parsePrimaryExpression(): Expression {
-    switch (tokens[0].type) {
-        case TokenType.Break:
-            tokens.shift()
-            return {kind: "Break"} as Break
-        case TokenType.Identifier:
-            return {kind: "Identifier", symbol: tokens.shift().value} as Identifier
-        case TokenType.String:
-            return {kind: "StringLiteral", value: tokens.shift().value} as StringLiteral
-        case TokenType.Number:
-            return {kind: "NumericLiteral", value: parseFloat(tokens.shift().value)} as NumericLiteral
-        case TokenType.Boolean:
-            return {kind: "BooleanLiteral", value: tokens.shift().value == "true"} as BooleanLiteral
-        case TokenType.Null:
-            tokens.shift()
-            return {kind: "NullLiteral"} as NullLiteral
-        default:
-            console.error("Unexpected token found during parsing", tokens.shift())
+        switch (tokens[0]?.type) {
+            case TokenType.Break:
+                tokens.shift()
+                return {kind: "Break"} as Break
+            case TokenType.Identifier:
+                return {kind: "Identifier", symbol: tokens.shift().value} as Identifier
+            case TokenType.String:
+                return {kind: "StringLiteral", value: tokens.shift().value} as StringLiteral
+            case TokenType.Number:
+                return {kind: "NumericLiteral", value: parseFloat(tokens.shift().value)} as NumericLiteral
+            case TokenType.Minus:
+                tokens.shift()
+                return {kind: "NumericLiteral", value: -parseFloat(tokens.shift().value)} as NumericLiteral
+            case TokenType.Boolean:
+                return {kind: "BooleanLiteral", value: tokens.shift().value == "true"} as BooleanLiteral
+            case TokenType.Null:
+                tokens.shift()
+                return {kind: "NullLiteral"} as NullLiteral
+            case TokenType.OpenSquareBracket:
+                return {kind: "ArrayLiteral", elements: parseArray()} as ArrayLiteral
+            case TokenType.OpenCurlyBracket:
+                return {kind: "ObjectLiteral", body: parseObject()} as ObjectLiteral
+            case TokenType.OpenParenthesis: {
+                tokens.shift()
+                const expression = parseExpression()
+                tokens.shift()
+                return expression
+            }
+            default:
+                console.log("Unexpected token found while parsing expression", tokens[0])
+                tokens.shift()
+        }
     }
 }

@@ -1,7 +1,5 @@
 export type NodeType =
     | "Program"
-    | "Import"
-    | "Module"
     | "Assignment"
     | "Mutation"
     | "Logic"
@@ -9,8 +7,6 @@ export type NodeType =
     | "Function"
 
 
-    | "LogicalExpression"
-    | "ConditionalExpression"
     | "BinaryExpression"
     | "Identifier"
     | "Reference"
@@ -36,15 +32,6 @@ export interface Program extends Statement {
 
 
 
-export interface ImportStatement extends Statement {
-    kind: "Import"
-    imports: Array<string>
-}
-export interface ModuleStatement extends Statement {
-    kind: "Module"
-    symbol: string
-    body: Statement[]
-}
 export interface Assignment extends Statement {
     kind: "Assignment"
     constant: boolean
@@ -53,19 +40,19 @@ export interface Assignment extends Statement {
 }
 export interface Mutation extends Statement {
     kind: "Mutation"
-    identifier: Identifier
+    referencing: Reference
     value: Expression
 }
 export interface Logic extends Statement {
     kind: "Logic"
-    type: "check" | "repeat" | "while"
+    type: string
     parameters: Expression
     body: Statement[]
 }
 export interface Function extends Statement {
     kind: "Function"
     symbol: string
-    parameters: Array<Identifier>
+    parameters: Expression[]
     return: Expression
     body: Statement[]
 }
@@ -75,22 +62,11 @@ export interface Break extends Statement {
 
 
 
-export interface LogicalExpression extends Expression {
-    kind: "LogicalExpression"
-    left: Expression
-    operation: "&" | "|"
-    right: Expression
-}
-export interface ConditionalExpression extends Expression {
-    kind: "ConditionalExpression"
-    left: Expression
-    operation: "=" | "<" | ">" | "!="
-    right: Expression
-}
+
 export interface BinaryExpression extends Expression {
     kind: "BinaryExpression"
     left: Expression
-    operation: "+" | "-" | "*" | "/" | "%" | "^" | "√"
+    operation: string
     right: Expression
 }
 export interface Identifier extends Expression {
@@ -99,22 +75,19 @@ export interface Identifier extends Expression {
 }
 export interface Reference extends Expression {
     kind: "Reference"
-    referencing: Identifier
+    symbol: string
+    index?: Expression
 }
 export interface FunctionReference extends Expression {
     kind: "FunctionReference"
+    constant: boolean
     referencing: Identifier
-    parameters: Array<Expression>
-}
-export interface IndexReference extends Expression {
-    kind: "IndexReference"
-    referencing: Identifier
-    index: Expression
+    parameters: Expression[]
 }
 export interface MemberReference extends Expression {
     kind: "MemberReference"
-    referencing: Identifier
-    property: Identifier | FunctionReference | MemberReference
+    referencing: Reference | FunctionReference
+    property?: MemberReference
 }
 export interface ObjectLiteral extends Expression {
     kind: "ObjectLiteral"
@@ -122,7 +95,7 @@ export interface ObjectLiteral extends Expression {
 }
 export interface ArrayLiteral extends Expression {
     kind: "ArrayLiteral"
-    value: Array<Expression>
+    elements: Expression[]
 }
 export interface StringLiteral extends Expression {
     kind: "StringLiteral"
