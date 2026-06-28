@@ -1,3 +1,10 @@
-math.randomDecimal[3, 1]()
-number3 = 3
-var = number3 * math.randomDecimal[3, 1]() < 10
+intValue = 0
+function smartFunctionName[smartValue](smartArray) = {
+    intValue -> 0
+    smartArray = []
+    repeat(math.random[null, smartValue]()) {
+        smartArray[intValue] -> intValue + 1
+        intValue -> intValue + 1
+    }
+}
+smartFunctionName[5]()

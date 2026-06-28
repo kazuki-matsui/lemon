@@ -17,27 +17,28 @@ check(string = 'hello') {
     boolean = false
 }
 intValue = 0
-repeat(number) = {
-    number1 -> number1 + 1
-    check(number1 > 100 | number1 = 100) {
+repeat(number) {
+    intValue -> intValue + 1
+    check(intValue > 100 | intValue = 100) {
         break
     }
 }
-while(number * math.randomDecimal[3, [1, 3]] < 10) {
-    intValue -> intValue * random[1, 10]
+intValue -> 0
+while(number * math.randomDecimal[3, [1, 3]]() < 10) {
+    intValue -> intValue * random[1, 10]()
 }
 intValue -> 0
-repeat(intValue : array) {
-    index = intValue
+repeat(index : array) {
+    intValue -> index
 }
 function smartFunctionName[smartValue](smartArray) = {
-    intValue = 0
-    smartArray -> []
-    repeat(math.random[null, smartValue]) = {
-        smartArray[intValue] = intValue + 1
+    intValue -> 0
+    smartArray = []
+    repeat(math.random[null, smartValue]()) {
+        smartArray[intValue] -> intValue + 1
         intValue -> intValue + 1
     }
 }
-smartFunctionName[]()
+smartFunctionName[5]()
 /* this is a constant function, it's purpose is only to be useful to the devs*/
-!summonMonster[1]()
+!summonMonster['troll']()

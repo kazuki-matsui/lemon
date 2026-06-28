@@ -2,14 +2,13 @@ export enum TokenType {
     OpenParenthesis, ClosedParenthesis,
     Assignment, Mutation,
     BinaryOperator,
-    Comma, Minus,
+    Dot, Comma, Minus,
     Constant,
     OpenSquareBracket, ClosedSquareBracket,
     OpenCurlyBracket, ClosedCurlyBracket,
     String, Number, Boolean, Null,
     Break, Logic, Function,
     Identifier, Reference,
-    Import,
     EndOfFile
 }
 export interface Token {
@@ -34,6 +33,7 @@ function lastTokenTypeOf(tokens: Array<Token>, type: TokenType) {
             return i
         }
     }
+    return -1
 }
 function isIdentified(tokens: Array<Token>, source: string): boolean {
     for(const token of tokens) {
@@ -52,7 +52,7 @@ export default function tokenize(sourceCode: string): Token[] {
             tokens.push(token(source.shift(), TokenType.OpenParenthesis))
         } else if(source[0] == ")") {
             tokens.push(token(source.shift(), TokenType.ClosedParenthesis))
-        } else if(source[0] == "=" && (lastTokenTypeOf(tokens, TokenType.OpenParenthesis) < lastTokenTypeOf(tokens, TokenType.ClosedParenthesis) || lastTokenTypeOf(tokens, TokenType.OpenParenthesis) == undefined)) {
+        } else if(source[0] == "=" && lastTokenTypeOf(tokens, TokenType.OpenParenthesis) <= lastTokenTypeOf(tokens, TokenType.ClosedParenthesis)) {
             tokens.push(token(source.shift(), TokenType.Assignment))
         } else if(source[0] == "-" && source[1] == ">") {
             tokens.push(token(source.shift() + source.shift(), TokenType.Mutation))
@@ -75,11 +75,13 @@ export default function tokenize(sourceCode: string): Token[] {
                 }
                 comment += source.shift()
             }
+        } else if(source[0] == ".") {
+            tokens.push(token(source.shift(), TokenType.Dot))
         } else if(source[0] == ",") {
             tokens.push(token(source.shift(), TokenType.Comma))
         } else if(source[0] == "-" && isNumber(source[1])) {
             tokens.push(token(source.shift(), TokenType.Minus))
-        } else if(source[0] == "&" || source[0] == "|" || source[0] == "∈" || source[0] == "=" || source[0] == ">" || source[0] == "<" || source[0] == "+" || source[0] == "-" || source[0] == "*" || source[0] == "/" || source[0] == "%" || source[0] == "^" || source[0] == "√") {
+        } else if(source[0] == "&" || source[0] == "|" || source[0] == ":" || source[0] == "=" || source[0] == ">" || source[0] == "<" || source[0] == "+" || source[0] == "-" || source[0] == "*" || source[0] == "/" || source[0] == "%" || source[0] == "^" || source[0] == "√") {
             tokens.push(token(source.shift(), TokenType.BinaryOperator))
         } else if(source[0] == "!" && source[1] == "=") {
             tokens.push(token(source.shift() + source.shift(), TokenType.BinaryOperator))
@@ -120,13 +122,11 @@ export default function tokenize(sourceCode: string): Token[] {
 
             else if (isAlphabetical(source[0])) {
                 let alphabeticalCharacter = ""
-                while(source.length > 0 && (isAlphabetical(source[0]) || isNumber(source[0]) || source[0] == ".")) {
+                while(source.length > 0 && (isAlphabetical(source[0]) || isNumber(source[0]))) {
                     alphabeticalCharacter += source.shift()
                 }
 
-                if(alphabeticalCharacter == "import" && tokens.length == 0) {
-                    tokens.push(token(alphabeticalCharacter, TokenType.Import))
-                } else if(alphabeticalCharacter == "true" || alphabeticalCharacter == "false") {
+                if(alphabeticalCharacter == "true" || alphabeticalCharacter == "false") {
                     tokens.push(token(alphabeticalCharacter, TokenType.Boolean))
                 } else if(alphabeticalCharacter == "null") {
                     tokens.push(token(alphabeticalCharacter, TokenType.Null))
@@ -137,9 +137,9 @@ export default function tokenize(sourceCode: string): Token[] {
                 } else if(alphabeticalCharacter == "function") {
                     tokens.push(token(alphabeticalCharacter, TokenType.Function))
                 } else {
-                    if(source[1] == "=" || lastTokenTypeOf(tokens, TokenType.ClosedSquareBracket) == undefined && lastTokenTypeOf(tokens, TokenType.OpenSquareBracket) > lastTokenTypeOf(tokens, TokenType.Function))  {
+                    if(source[1] == "=" || tokens[tokens.length - 1]?.type == TokenType.Function || lastTokenTypeOf(tokens, TokenType.Function) > lastTokenTypeOf(tokens, TokenType.ClosedSquareBracket) || tokens[tokens.length - 2]?.value == "repeat" && source[1] == ":")  {
                         tokens.push(token(alphabeticalCharacter, TokenType.Identifier))
-                    } else if(isIdentified(tokens, alphabeticalCharacter) || alphabeticalCharacter.includes(".") || source[0] == "[" || tokens[tokens.length - 1]?.type == TokenType.OpenParenthesis) {
+                    } else if(isIdentified(tokens, alphabeticalCharacter) || source[0] == "." || source[0] == "[" || tokens[tokens.length - 1]?.type == TokenType.OpenParenthesis) {
                         tokens.push(token(alphabeticalCharacter, TokenType.Reference))
                     }
                 }

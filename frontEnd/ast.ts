@@ -86,7 +86,7 @@ export interface FunctionReference extends Expression {
 }
 export interface MemberReference extends Expression {
     kind: "MemberReference"
-    referencing: Reference | FunctionReference
+    referencing: Expression
     property?: MemberReference
 }
 export interface ObjectLiteral extends Expression {
