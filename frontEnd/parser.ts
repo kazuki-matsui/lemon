@@ -64,10 +64,7 @@ function parseStatement(): Statement {
         tokens.shift()
         return {kind: "Mutation", referencing, value: parseExpression()} as Mutation
     } else if(tokens[0]?.type == TokenType.Logic) {
-        let logic = {kind: "Logic", type: tokens.shift().value, parameters: parseExpression(), body: []} as Logic
-        tokens.shift()
-        logic.body = parseObject()
-        return logic
+        return {kind: "Logic", type: tokens.shift().value, parameters: parseExpression(), body: parseObject()} as Logic
     } else if(tokens[0]?.type == TokenType.Function) {
         tokens.shift()
         let functionStatement = {kind: "Function", symbol: tokens.shift().value, parameters: parseArray(), return: parseExpression(), body: {}} as Function
