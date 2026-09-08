@@ -1,0 +1,4 @@
+function divide(left, right)(result) {
+    result = left / right
+}
+number = divide(10, 20)()

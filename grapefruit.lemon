@@ -1,44 +1,62 @@
-!import['lime.lemon', 'randomFunction.lemon']()
-number = 5
-string = 'hello'
-boolean = true
-nullValue = null
-binaryExpression = (number * 5) ^ 5
-array = ["red", "blue"]
-object = {
-    definition = 'objects act the same way as the upper level'
+import('lime.lemon', 'mathUtils.lemon')
+
+// single-line comment
+/* multi-line
+comment */
+
+//variables
+variable = object{
+    string = "There are 7 values, those being strings, numbers, booleans, nulls, arrays sets and objects.",
+    number = 2,
+    boolean = false,
+    noValue = null,
+    // array is an ordered collection of values, their starting index is 1 similar to Lua and every empty index is treated as null
+    array = [1, 2, 3, 4, 5]
 }
-object.definition -> 'this manipulates the variable'
-!constant = 'this variable cannot be changed'
-array[0] -> "would change first index of array"
-check(string = 'hello') {
-    boolean = true
-} otherwise(string = 'Hello') {
-    boolean = false
+
+constant constantVariable = 'Hello, I cannot be changed.'
+//object is an ordered collection of values, they contain properties (variables), logic blocks and functions
+numbers = object{
+    one = variable.array[1],
+    mistakes = 0
 }
-intValue = 0
-repeat(number) {
-    intValue -> intValue + 1
-    check(intValue > 100 | intValue = 100) {
-        break
+
+operationPrecedence = [
+    "&", "|",
+    "!=", "==", "=>", "<=", ">", "<",
+    "+", "-",
+    "*", "/", "%",
+    "^"
+]
+
+
+
+// logic blocks
+if('This string equals to variable' == variable) {
+    output = false
+} otherwise(true / variable == 0) { // the / operator also works like enhanced for loop where it gives the amount of something in somewhere
+      output = true
+}
+/*every(boolean / variable) {
+    boolean = boolean == false //inverts that boolean
+}*/
+repeat(5) {
+    numbers.one = numbers.one + 1
+}
+while(numbers.one > 100) {
+    numbers.one = numbers.one + 1
+}
+
+
+
+// function, in first field you define arguments and in second field you define return variable
+function divide(left, right)(result) {
+    check(left == 0 | left == null | right == 0 | right == null) {
+        break // when you break out of function it returns null
     }
+    result = left / right
 }
-intValue -> 0
-while(number * math.randomDecimal[3, [1, 3]]() < 10) {
-    intValue -> intValue * random[1, 10]()
-}
-intValue -> 0
-repeat(index : array) {
-    intValue -> index
-}
-function smartFunctionName[smartValue](smartArray) = {
-    intValue -> 0
-    smartArray = []
-    repeat(math.random[null, smartValue]()) {
-        smartArray[intValue] -> intValue + 1
-        intValue -> intValue + 1
-    }
-}
-smartFunctionName[5]()
-/* this is a constant function, it's purpose is only to be useful to the devs*/
-!summonMonster['troll']()
+// this is how you call a function
+// numbers.one = divide(1, 100)()
+// this is a constant function, you cannot declare a constant function inside of lemon, it's use is defined outside of lemon
+// constant spawnCreature('zombie')()
