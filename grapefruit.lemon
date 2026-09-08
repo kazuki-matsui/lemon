@@ -1,4 +1,4 @@
-import('lime.lemon', 'mathUtils.lemon')
+import('lime.lemon')
 
 // single-line comment
 /* multi-line
@@ -37,9 +37,9 @@ if('This string equals to variable' == variable) {
 } otherwise(true / variable == 0) { // the / operator also works like enhanced for loop where it gives the amount of something in somewhere
       output = true
 }
-/*every(boolean / variable) {
+every(boolean / variable) {
     boolean = boolean == false //inverts that boolean
-}*/
+}
 repeat(5) {
     numbers.one = numbers.one + 1
 }
@@ -51,12 +51,12 @@ while(numbers.one > 100) {
 
 // function, in first field you define arguments and in second field you define return variable
 function divide(left, right)(result) {
-    check(left == 0 | left == null | right == 0 | right == null) {
+    if(left == 0 | left == null | right == 0 | right == null) {
         break // when you break out of function it returns null
     }
     result = left / right
 }
 // this is how you call a function
-// numbers.one = divide(1, 100)()
+numbers.one = divide(1, 100)()
 // this is a constant function, you cannot declare a constant function inside of lemon, it's use is defined outside of lemon
-// constant spawnCreature('zombie')()
+constant spawnCreature('zombie')()

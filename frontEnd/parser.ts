@@ -69,7 +69,7 @@ function parseStatement(): Statement {
         return parseAssignment()
     } else {
         const left = parseMemberExpression()
-        if(left.kind == "FunctionCall") {
+        if(left?.kind == "FunctionCall") {
             return left
         }
         if(tokens[0].type == TokenType.Assignment) {

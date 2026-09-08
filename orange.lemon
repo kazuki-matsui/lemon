@@ -1,0 +1,3 @@
+function divide(left, right)(result) {
+    result = left / right
+}

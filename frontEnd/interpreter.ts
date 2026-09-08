@@ -34,7 +34,7 @@ export default function evaluate(sourceCode: string) {
 }
 export function evaluateNode(node: Statement, environment: Environment): RuntimeValue {
     let ifStatement: boolean
-    switch (node.kind) {
+    switch (node?.kind) {
         case "Import":
             const imports = (<Import>node).imports;
             for (const importedFile of imports) {
@@ -59,16 +59,15 @@ export function evaluateNode(node: Statement, environment: Environment): Runtime
             }
             if (assignment.identifier.index == undefined) {
                 if (assignment.constant && !environment.hasVariable(symbol)) {
-                    environment.assign(symbol, value, true, environment)
+                    return environment.assign(symbol, value, true, environment)
                 } else if (!assignment.constant) {
-                    environment.assign(symbol, value, false, environment)
+                    return environment.assign(symbol, value, false, environment)
                 }
             }
             const index = evaluateNode(assignment.identifier.index, environment).value
             const variable = environment.getVariable(symbol)
             variable.value[index] = value
-            environment.assign(symbol, variable, false, environment)
-            return null
+            return environment.assign(symbol, variable, false, environment)
         }
         case "Logic": {
             const logic = node as Logic
